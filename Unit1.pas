@@ -1,4 +1,11 @@
-unit Unit1;
+﻿unit Unit1;
+{
+Demo of LVasExplorer
+ver 2024.4
+Grigory Gorkun
+https://kuzduk.ru
+kuzduk@mail.ru
+}
 
 interface
 
@@ -10,6 +17,7 @@ type
   TForm1 = class(TForm)
     ListView1: TListView;
     Button1: TButton;
+    Edit1: TEdit;
     procedure Button1Click(Sender: TObject);
   private
     { Private declarations }
@@ -178,7 +186,7 @@ end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
-LVasExplorer(ListView1, 'D:\', True)
+LVasExplorer(ListView1, Edit1.Text, True)
 end;
 
 
