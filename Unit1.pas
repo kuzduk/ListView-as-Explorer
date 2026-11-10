@@ -1,7 +1,7 @@
 ﻿unit Unit1;
 {
-Demo of LVasExplorer
-ver 2024.4
+ListView as Explorer Demo
+ver 2026.1
 Grigory Gorkun
 https://kuzduk.ru
 kuzduk@mail.ru
@@ -10,8 +10,8 @@ kuzduk@mail.ru
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
-  ComCtrls, ShellApi;
+  Windows, SysUtils, Forms, Dialogs, StdCtrls, ShellApi, Classes, Controls,
+  ComCtrls;
 
 type
   TForm1 = class(TForm)
@@ -19,10 +19,6 @@ type
     Button1: TButton;
     Edit1: TEdit;
     procedure Button1Click(Sender: TObject);
-  private
-    { Private declarations }
-  public
-    { Public declarations }
   end;
 
 var
@@ -32,7 +28,9 @@ implementation
 
 {$R *.dfm}
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ icoShell Index
+
+
+//------------------------------------------------------------------------------ icoShell Index
 function Shell_ico_Index(FullPath: string): integer;
 //uses ShellApi
 var ShInfo: TSHFileInfo;
@@ -72,30 +70,29 @@ end;
 
 
 
-//------------------------------------------------------------------------------ LV as Explorer
-procedure LVasExplorer(LV: TListView; Path: string; HideShow: Boolean);
+//------------------------------------------------------------------------------ ListView as Explorer
+procedure ListViewAsExplorer(LV: TListView; APath: string; AShowHiden: Boolean = False);
 var
   sr: TSearchRec;
-  xItem: TListItem;
+  iItem: TListItem;
   icoListSmall, icoListLarge: TImageList;
   Atrib: integer;
 
 begin
 
-if Length(Path) = 1
-then Path := Path + ':\'
-else Path := IncludeTrailingBackSlash(Path);
+if Length(APath) = 1
+then APath := APath + ':\'
+else APath := IncludeTrailingBackSlash(APath);
 
 
-if not DirectoryExists(Path) then exit;
+if not DirectoryExists(APath) then exit;
 
 
-if HideShow
+if AShowHiden
 then Atrib := faDirectory + faAnyFile + faVolumeID
 else Atrib := faDirectory + faAnyFile + faVolumeID - faHidden - faSysFile;
 
-if FindFirst(Path + '*.*', Atrib, sr) <> 0
-then
+if FindFirst(APath + '*.*', Atrib, sr) <> 0 then
 begin
 //  ShowMessage(Path+' - ПАПКИ НЕ СУЩЕСТВУЕТ!'); //uses Dialogs
   exit;
@@ -115,27 +112,26 @@ while LV.Columns.Count < 3 do
 
 
 //Создаем списки маленьких иконок типов файлов
-if LV.SmallImages = nil
-
-then
+if LV.SmallImages = nil then
 begin
   icoListSmall := TImageList.Create(LV.Owner);
   LV.SmallImages := icoListSmall;
 end
 
-else icoListSmall := LV.SmallImages as TImageList;
+else
+  icoListSmall := LV.SmallImages as TImageList;
 
 
 //Создаем списки больших иконок типов файлов
-if LV.LargeImages = nil
-
-then
+if LV.LargeImages = nil then
 begin
   icoListLarge := TImageList.Create(LV.Owner);
   LV.LargeImages := icoListLarge;
 end
 
-else icoListLarge := LV.LargeImages as TImageList;
+else
+  icoListLarge := LV.LargeImages as TImageList;
+
 
 Shell_ico_LoadAll(LV.SmallImages as TImageList, True);
 Shell_ico_LoadAll(LV.LargeImages as TImageList, False);
@@ -148,29 +144,30 @@ Shell_ico_LoadAll(LV.LargeImages as TImageList, False);
 LV.Items.Clear;
 
 repeat
-      if sr.Name = ''   then Continue;
-      if sr.Name = '.'  then Continue;
-      if sr.Name = '..' then Continue;
 
-      if sr.Attr and faDirectory = faDirectory
+    if sr.Name = ''   then Continue;
+    if sr.Name = '.'  then Continue;
+    if sr.Name = '..' then Continue;
 
-      then//папка
-      begin
-          xItem := LV.Items.Add;
-          xItem.Caption := (sr.Name);          //Name
-          xItem.SubItems.Add('\Folder'); //Folder type
-          xItem.SubItems.Add( inttostr(sr.Size) );
-          xItem.ImageIndex := Shell_ico_Index(Path + sr.Name); //ico
-      end
+    if sr.Attr and faDirectory = faDirectory
 
-      else//файл
-      begin
-          xItem := LV.Items.Add;
-          xItem.Caption := sr.Name;  //Name
-          xItem.SubItems.Add( Copy(ExtractFileExt(sr.Name), 2) ); //Ext
-          xItem.SubItems.Add( inttostr(sr.Size) ); //Size
-          xItem.ImageIndex := Shell_ico_Index(Path + sr.Name); //ico
-      end;
+    then//папка
+    begin
+      iItem := LV.Items.Add;
+      iItem.Caption := (sr.Name);          //Name
+      iItem.SubItems.Add('\Folder'); //Folder type
+      iItem.SubItems.Add( inttostr(sr.Size) );
+      iItem.ImageIndex := Shell_ico_Index(APath + sr.Name); //ico
+    end
+
+    else//файл
+    begin
+      iItem := LV.Items.Add;
+      iItem.Caption := sr.Name;  //Name
+      iItem.SubItems.Add( Copy(ExtractFileExt(sr.Name), 2) ); //Ext
+      iItem.SubItems.Add( inttostr(sr.Size) ); //Size
+      iItem.ImageIndex := Shell_ico_Index(APath + sr.Name); //ico
+    end;
 
 until FindNext(sr) <> 0;
 
@@ -186,7 +183,7 @@ end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
-LVasExplorer(ListView1, Edit1.Text, True)
+ListViewAsExplorer(ListView1, Edit1.Text, True)
 end;
 
 
